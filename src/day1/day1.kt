@@ -1,3 +1,5 @@
+package day1
+
 import java.util.*
 
 fun part1() {
@@ -46,6 +48,6 @@ fun part2() {
     println("There were $increasedCount sums that are larger and $decreasedCount sums that are smaller")
 }
 
-fun main(){
+fun day1(){
     part2()
 }
