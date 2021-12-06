@@ -65,26 +65,37 @@ class BingoCard(card: MutableList<MutableList<Int>>){
     }
 }
 
-fun playBingo(playedNumbers: List<Int>, boards: List<BingoCard>): Int{
+fun playBingo(playedNumbers: List<Int>, boards: MutableList<BingoCard>){
+    val startingGameSize = boards.size
     println("Let\'s play Bingo!!")
     for (number in playedNumbers){
+        val gameIterator = boards.iterator()
         println("we played $number")
-        boards.forEach{
+        while(gameIterator.hasNext()){
+            val board = gameIterator.next()
             // mark the played number
-            it.findMatch(number)
+            board.findMatch(number)
             // check for a win
-            if (it.hasWon()){
-                val sum = it.calculateSum()
-                println("Bingo! The last number played was $number and the sum was $sum")
-                return sum * number;
+            if (board.hasWon()){
+                if (boards.size === startingGameSize){
+                    val sum = board.calculateSum()
+                    println("Bingo! The last number played was $number and the sum was $sum")
+                    println("Part 1: The winning board has a score of ${sum * number}")
+                } else if (boards.size === 1){
+                    val sum = board.calculateSum()
+                    println("Bingo... The last number played was $number and the sum was $sum")
+                    println("Part 2: The last board to win bingo has a score of ${sum * number}")
+                    return
+                }
+                gameIterator.remove()
             }
         }
     }
     println("No one won")
-    return 0
+    return
 }
 
-fun part1(fileName: String): Int{
+fun setUpBingo(fileName: String){
     // generate the board
     var playedNumbers: List<Int> = emptyList()
     var boards: MutableList<BingoCard> = emptyList<BingoCard>().toMutableList()
@@ -106,18 +117,13 @@ fun part1(fileName: String): Int{
     // since i initialized each list with an empty list i have to remove it again... this sucks
     boards.forEach{ it.card.removeFirst() }
 
-    // now I have my boards and played numbers so I can play!
-    return playBingo(playedNumbers, boards)
-}
-
-fun part2(input: List<String>): Int {
-    return 1
+    // now I have my boards and played numbers, so I can play
+     playBingo(playedNumbers, boards.toMutableList())
 }
 
 fun main(){
     //var fileName = "src/day4/testInput.txt"
     var fileName = "src/day4/myInput.txt"
 
-    println("The final score is ${part1(fileName)}")
-
+    setUpBingo(fileName)
 }
