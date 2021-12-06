@@ -1,12 +1,7 @@
 package day2
 
 import java.io.File
-
-fun readFileToList(fileName: String): List<String> {
-    val myList = mutableListOf<String>()
-    File(fileName).useLines { lines -> myList.addAll(lines) }
-    return myList
-}
+import FileReader.readFileToList
 
 fun part1(input: List<String>): Array<Int> {
     var coordinates: Array<Int> = arrayOf(0, 0)
