@@ -1,8 +1,6 @@
 package day2
 
-import java.util.*
 import java.io.File
-import java.io.InputStream
 
 fun readFileToList(fileName: String): List<String> {
     val myList = mutableListOf<String>()
@@ -54,7 +52,7 @@ fun part2(input: List<String>): Int {
 }
 
 fun main(){
-    var input: List<String> = readFileToList("myInput.txt")
+    var input: List<String> = readFileToList("src/day2/myInput.txt")
     //var input: List<String> = readFileToList("testInput.txt")
     var part1Result = part1(input)
     println("horizontal  ${part1Result[0]} depth ${part1Result[1]}")
