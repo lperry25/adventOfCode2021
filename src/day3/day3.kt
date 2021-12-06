@@ -1,12 +1,7 @@
 package day3
 
 import java.io.File
-
-fun readFileToList(fileName: String): List<String> {
-    val myList = mutableListOf<String>()
-    File(fileName).useLines { lines -> myList.addAll(lines) }
-    return myList
-}
+import FileReader.readFileToList
 
 fun binaryArrayToInteger(list: List<Int>): Int{
     return list.joinToString("").toInt(2)
