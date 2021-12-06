@@ -8,6 +8,8 @@ fun readFileToList(fileName: String): List<String> {
     return myList
 }
 
-fun readEachFileLine(fileName: String, action: () -> String) {
-    File(fileName).forEachLine { println(it) }
+fun readEntireFileContents(fileName: String): String {
+    var fileContents = ""
+    File(fileName).forEachLine { fileContents += it }
+    return fileContents
 }
