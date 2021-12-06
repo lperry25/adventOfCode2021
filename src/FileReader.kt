@@ -7,3 +7,7 @@ fun readFileToList(fileName: String): List<String> {
     File(fileName).useLines { lines -> myList.addAll(lines) }
     return myList
 }
+
+fun readEachFileLine(fileName: String, action: () -> String) {
+    File(fileName).forEachLine { println(it) }
+}

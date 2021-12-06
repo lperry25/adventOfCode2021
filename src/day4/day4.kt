@@ -1,116 +1,123 @@
 package day4
 
 import java.io.File
-import FileReader.readFileToList
 
-fun binaryArrayToInteger(list: List<Int>): Int{
-    return list.joinToString("").toInt(2)
-}
+val foundMarker = -1;
 
-class Diagnostic(gamma: List<Int>, epsilon: List<Int>){
-    var gamma: List<Int> = gamma
-    var epsilon: List<Int> = epsilon
-    // calculate power consumption as the product of both integer values
-    var powerConsumption: Int = binaryArrayToInteger(gamma) * binaryArrayToInteger(epsilon)
-}
+class BingoCard(card: MutableList<MutableList<Int>>){
+    var card: MutableList<MutableList<Int>> = card;
 
-fun part1(input: List<String>): Diagnostic{
-    var codeLength = input[0].toCharArray().size
-    var numberOfLines = input.size
+    fun addLine(newLine: String){
+        var newLineInt = newLine.trim(' ').split("\\s+".toRegex()).map{ newNum -> newNum.toInt()}.toMutableList()
+        card.add(newLineInt)
+    }
 
-    // start by counting the 1 bit in each position
-    var oneDigitCount: MutableList<Int> = (Array(codeLength) { 0 }).toMutableList()
-    for (code in input){
-        var digits = code.toCharArray();
-        for ((i, digit) in digits.withIndex()){
-            if (digit.equals('1')){
-                oneDigitCount[i] = oneDigitCount[i] + 1
+    fun findMatch(match: Int){
+        // loop through each row and column looking for a match
+        for(i in 0..4){
+            for (j in 0..4){
+                if (card[j][i] == match){
+                    card[j][i] = foundMarker
+                    break
+                }
             }
         }
     }
 
-    // calculate gamma from counts of 1 bit
-    var halfOfItems = numberOfLines/2
-    var gammaList: List<Int> = oneDigitCount.map{count ->
-        if (count >= (halfOfItems))  1 else 0
+    fun hasCompleteRow(): Boolean{
+        card.forEach{ row ->
+            if(row.all { it == foundMarker }) return true
+        }
+        return false
     }
 
-    // calculate epsilon as opposite of gamma
-    var epsilonList: List<Int> = gammaList.map{digit ->
-        if (digit === 1) 0 else 1
+    fun hasCompleteCol(): Boolean{
+        // need to loop through each column looking for foundMarkers in each column
+        for(i in 0..4){
+            var allMatch = true
+            for (j in 0..4){
+                if (card[j][i] != foundMarker){
+                    allMatch = false
+                }
+            }
+            if (allMatch) {
+                return true
+            };
+        }
+        return false;
     }
 
-    return Diagnostic(gammaList, epsilonList)
+    fun hasWon(): Boolean{
+        return hasCompleteRow() || hasCompleteCol()
+    }
+
+    fun calculateSum(): Int{
+        // calculate the sum of all the number that have not been found
+        var sum: Int = 0
+        for(i in 0..4){
+            for (j in 0..4){
+                if (card[j][i] > foundMarker){
+                    sum += card[j][i]
+                }
+            }
+        }
+        return sum
+    }
 }
 
-fun part2DiagnsoticCalculation(input: List<String>, defaultToOneOnEquality: Boolean, currentCode: List<Int>, isGamma: Boolean): List<Int>{
-    var codeLength = currentCode.size
-    var numberOfLines = input.size
-
-    // start by counting the 1 bit in each position
-    var oneDigitCount: MutableList<Int> = currentCode.toMutableList();
-    oneDigitCount.add(codeLength, 0)
-    for (code in input){
-        var digits = code.toCharArray();
-        if (digits[codeLength].equals('1')){
-            oneDigitCount[codeLength] = oneDigitCount[codeLength] + 1
+fun playBingo(playedNumbers: List<Int>, boards: List<BingoCard>): Int{
+    println("Let\'s play Bingo!!")
+    for (number in playedNumbers){
+        println("we played $number")
+        boards.forEach{
+            // mark the played number
+            it.findMatch(number)
+            // check for a win
+            if (it.hasWon()){
+                val sum = it.calculateSum()
+                println("Bingo! The last number played was $number and the sum was $sum")
+                return sum * number;
+            }
         }
     }
+    println("No one won")
+    return 0
+}
 
-    // calculate gamma from counts of 1 bit
-    var halfOfItems: Float = numberOfLines.toFloat()/2
-    var countOfOnes = oneDigitCount[codeLength]
-    var newGammaCode = if (countOfOnes >= (halfOfItems))  1 else 0
-    if (isGamma){
-        var gammaList: MutableList<Int> = currentCode.toMutableList()
-        gammaList.add(codeLength, newGammaCode)
-        return gammaList
+fun part1(fileName: String): Int{
+    // generate the board
+    var playedNumbers: List<Int> = emptyList()
+    var boards: MutableList<BingoCard> = emptyList<BingoCard>().toMutableList()
+    var boardIndex = -1
+    File(fileName).forEachLine {
+        if (it.contains(',')) {
+            playedNumbers = it.split(",").map{ playedNum -> playedNum.toInt() }
+        }
+        else if (it.equals("")){
+            boardIndex++
+            var emptyInnerList = emptyList<Int>().toMutableList()
+            // this is not working great cause i have an empty first list everytime
+            boards.add(boardIndex, BingoCard(listOf(emptyInnerList).toMutableList()))
+        }
+        else {
+            boards[boardIndex].addLine(it)
+        }
     }
-    // calculate epsilon as opposite of gamma... this became a mess and is very specifc to the use case
-    var epsilonList: MutableList<Int> = currentCode.toMutableList()
-    var newEpsilonValue = if (newGammaCode.equals(1)) 0 else 1
-    epsilonList.add(codeLength, newEpsilonValue)
-    return epsilonList
+    // since i initialized each list with an empty list i have to remove it again... this sucks
+    boards.forEach{ it.card.removeFirst() }
 
+    // now I have my boards and played numbers so I can play!
+    return playBingo(playedNumbers, boards)
 }
 
 fun part2(input: List<String>): Int {
-    // find the oxygen generator rating (this uses the most common digits and defaults to 1 on a tie)
-    var oxygenGeneratorRating: List<String> = input;
-    var initialMatching: List<Int> = emptyList<Int>();
-    do{
-        var currentGamma = part2DiagnsoticCalculation(oxygenGeneratorRating, true, initialMatching, true)
-        oxygenGeneratorRating = oxygenGeneratorRating.filter { code -> code.startsWith(currentGamma.joinToString("")) }
-        initialMatching = currentGamma
-    } while (oxygenGeneratorRating.size > 1)
-
-    val oxygenGeneratorFinal = oxygenGeneratorRating[0].toInt(2)
-    println("oxygen generator $oxygenGeneratorFinal")
-
-    // find the CO2 scrubber rating (this usess the least common digits and defaults to 0 on a tie)
-    var co2Scrubber: List<String> = input;
-    var initialScrubbberMatching: List<Int> = emptyList<Int>();
-    do{
-        var currentEpsilon = part2DiagnsoticCalculation(co2Scrubber, false, initialScrubbberMatching, false)
-        co2Scrubber = co2Scrubber.filter { code -> code.startsWith(currentEpsilon.joinToString("")) }
-        initialScrubbberMatching = currentEpsilon
-    } while (co2Scrubber.size > 1)
-
-    val co2ScrubberFinal = co2Scrubber[0].toInt(2)
-    println("CO2 scrubber $co2ScrubberFinal")
-
-    return co2ScrubberFinal * oxygenGeneratorFinal
+    return 1
 }
 
 fun main(){
-    //var input: List<String> = readFileToList("src/day3/testInput.txt")
-    var input: List<String> = readFileToList("src/day3/myInput.txt")
+    //var fileName = "src/day4/testInput.txt"
+    var fileName = "src/day4/myInput.txt"
 
-    var part1Diagnostic = part1(input)
-    println("Gamma: ${part1Diagnostic.gamma}")
-    println("Epsilon: ${part1Diagnostic.epsilon}")
-    println("Power consumption is: ${part1Diagnostic.powerConsumption}")
+    println("The final score is ${part1(fileName)}")
 
-    var part2Diagnostic = part2(input)
-    println("life support rating $part2Diagnostic")
 }
