@@ -13,3 +13,7 @@ fun readEntireFileContents(fileName: String): String {
     File(fileName).forEachLine { fileContents += it }
     return fileContents
 }
+
+fun readFileAsIntList(fileName: String): List<Int>{
+    return readEntireFileContents(fileName).split(',').map{it.toInt()}
+}
